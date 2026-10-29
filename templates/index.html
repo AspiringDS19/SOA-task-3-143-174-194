@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniPay | Payment as a Service (PaaS) Platform</title>
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+<body>
+  {% raw %}
+  <div id="app" v-cloak>
+    <!-- TOP NAVIGATION & APP SWITCHER -->
+    <header class="navbar">
+      <div class="container nav-container">
+        <div class="brand" @click="activeTab = 'soa'">
+          <div class="brand-icon">⚡</div>
+          <div class="brand-text">
+            <h1>OmniPay Platform</h1>
+            <p>Enterprise Payment as a Service (PaaS)</p>
+          </div>
+        </div>
+
+        <!-- 3 Primary Views Switcher -->
+        <nav class="nav-tabs">
+          <button 
+            :class="['nav-tab-btn', { active: activeTab === 'ecommerce' }]"
+            @click="activeTab = 'ecommerce'"
+            id="tab-ecommerce-btn">
+            🛍️ NovaShop Store
+            <span class="badge-pill">E-Commerce</span>
+          </button>
+          <button 
+            :class="['nav-tab-btn', { active: activeTab === 'banking' }]"
+            @click="activeTab = 'banking'"
+            id="tab-banking-btn">
+            🏦 Apex Online Banking
+            <span class="badge-pill">FinTech</span>
+          </button>
+          <button 
+            :class="['nav-tab-btn', { active: activeTab === 'soa' }]"
+            @click="activeTab = 'soa'"
+            id="tab-soa-btn">
+            🌐 PaaS Architecture & Registry
+            <span class="badge-pill" style="background: rgba(16, 185, 129, 0.3); color: #6ee7b7;">Core Service</span>
+          </button>
+        </nav>
+
+        <!-- System Status & Controls -->
+        <div class="nav-actions">
+          <div class="pulse-indicator">
+            <span class="pulse-dot"></span>
+            <span>PaaS Engine Live (99.98% SLA)</span>
+          </div>
+          <button class="btn-secondary" @click="resetDemo" title="Reset all balances and orders for a fresh presentation">
+            🔄 Reset Demo
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding-top: 20px; padding-bottom: 60px;">
+      <!-- ARCHITECTURE CONTEXT BANNER -->
+      <section class="soa-task-banner">
+        <div class="banner-content">
+          <h2>
+            <span>✨ One Universal Payment Core. Two Radically Different Apps.</span>
+            <span class="banner-tag">PaaS Live Architecture</span>
+          </h2>
+          <p>
+            Experience true enterprise reusability in action: <strong>NovaShop</strong> handles frictionless retail checkout with coupons and stock reservation, while <strong>Apex Banking</strong> enforces strict AML limits, wire routing, and mandatory 2FA security challenges — both powered by the exact same underlying double-entry ledger engine.
+          </p>
+        </div>
+        <div>
+          <button class="btn-secondary" style="white-space: nowrap;" @click="activeTab = 'soa'">
+            Inspect PaaS Architecture &rarr;
+          </button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 1: E-COMMERCE CLIENT (NovaShop) -->
+      <!-- ================================================================= -->
+      <div v-if="activeTab === 'ecommerce'" class="ecommerce-view">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">🛍️ NovaShop Digital Storefront</h2>
+            <p class="panel-subtitle">Retail storefront simulating frictionless consumer checkout powered by the reusable PaaS core</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <span class="badge-tag indigo">Adapter: EcommercePaymentAdapter</span>
+            <span class="badge-tag cyan">Policy: Stock Lock + Coupons + Escrow</span>
+          </div>
+        </div>
+
+        <div class="ecommerce-grid">
+          <!-- Products Catalog -->
+          <div>
+            <div class="products-catalog">
+              <div v-for="product in products" :key="product.id" class="product-card">
+                <div class="product-img-wrap">
+                  <img :src="product.image" :alt="product.name" class="product-img" loading="lazy">
+                  <span class="product-badge">{{ product.category }}</span>
+                </div>
+                <div class="product-body">
+                  <h3 class="product-title">{{ product.name }}</h3>
+                  <p class="product-desc">{{ product.description }}</p>
+                  <div class="product-meta">
+                    <div>
+                      <div class="product-price">${{ product.price.toFixed(2) }}</div>
+                      <div class="product-stock">Stock: {{ product.stock }} units</div>
+                    </div>
+                    <button class="btn-add-cart" @click="addToCart(product)" :disabled="product.stock <= 0">
+                      <span>Add to Cart</span>
+                      <span>+</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Previous Orders History -->
+            <div class="glass-panel" style="margin-top: 30px;">
+              <h3 class="panel-title" style="font-size: 1.05rem; margin-bottom: 14px;">📦 Confirmed Orders History</h3>
+              <div v-if="ordersHistory.length === 0" style="color: var(--text-muted); font-size: 0.88rem;">
+                No orders placed yet. Add items to cart and checkout to create your first order!
+              </div>
+              <div v-else style="overflow-x: auto;">
+                <table class="matrix-table">
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Customer</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Payment Tx ID</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="ord in ordersHistory" :key="ord.id">
+                      <td style="font-weight: 700; color: #ffffff;">{{ ord.order_number }}</td>
+                      <td>{{ ord.customer_name }}</td>
+                      <td>
+                        <span v-for="(it, idx) in ord.items" :key="idx" style="display: block; font-size: 0.76rem;">
+                          {{ it.quantity }}x {{ it.name }}
+                        </span>
+                      </td>
+                      <td style="color: var(--accent-emerald); font-weight: 700;">${{ ord.final_amount.toFixed(2) }}</td>
+                      <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan);">{{ ord.payment_transaction_id }}</td>
+                      <td><span class="badge-tag emerald">{{ ord.status }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shopping Cart & Checkout Sidebar -->
+          <div class="cart-sidebar glass-panel">
+            <h3 class="panel-title" style="font-size: 1.1rem; margin-bottom: 16px;">
+              🛒 Cart Summary ({{ cartItemCount }})
+            </h3>
+
+            <div v-if="cart.length === 0" style="text-align: center; padding: 30px 10px; color: var(--text-muted);">
+              <p>Your shopping cart is empty.</p>
+              <p style="font-size: 0.8rem; margin-top: 6px;">Select products on the left to test the checkout flow.</p>
+            </div>
+
+            <div v-else>
+              <!-- Cart Items List -->
+              <div class="cart-items-list">
+                <div v-for="item in cart" :key="item.id" class="cart-item">
+                  <div class="cart-item-info">
+                    <h4>{{ item.name }}</h4>
+                    <span>${{ item.price.toFixed(2) }}</span>
+                  </div>
+                  <div class="cart-qty-ctrls">
+                    <button class="qty-btn" @click="updateCartQty(item.id, -1)">-</button>
+                    <span style="font-size: 0.85rem; font-weight: 700;">{{ item.quantity }}</span>
+                    <button class="qty-btn" @click="updateCartQty(item.id, 1)">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Promo Code Input -->
+              <div class="coupon-group">
+                <input 
+                  type="text" 
+                  v-model="couponCode" 
+                  class="form-input" 
+                  placeholder="Promo Code (e.g. WELCOME20)">
+                <button class="btn-secondary" @click="applyPromoCoupon" style="white-space: nowrap;">Apply</button>
+              </div>
+
+              <!-- Breakdown -->
+              <div class="summary-line">
+                <span>Subtotal</span>
+                <span>${{ cartSubtotal.toFixed(2) }}</span>
+              </div>
+              <div class="summary-line" v-if="appliedCoupon">
+                <span style="color: var(--accent-emerald);">Discount ({{ appliedCoupon.code }})</span>
+                <span style="color: var(--accent-emerald); font-weight: 700;">-${{ discountAmount.toFixed(2) }}</span>
+              </div>
+              <div class="summary-line">
+                <span>Shipping & Handling</span>
+                <span>{{ shippingFee === 0 ? 'FREE' : '$' + shippingFee.toFixed(2) }}</span>
+              </div>
+              <div class="summary-line total">
+                <span>Total Due</span>
+                <span style="color: var(--accent-emerald);">${{ cartTotal.toFixed(2) }}</span>
+              </div>
+
+              <!-- Checkout Details Form -->
+              <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 10px;">
+                <div class="form-group">
+                  <label class="form-label">Customer Name</label>
+                  <input type="text" v-model="customerForm.name" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Shipping Address</label>
+                  <input type="text" v-model="customerForm.address" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Payment Method</label>
+                  <select v-model="customerForm.paymentMethod" class="form-select">
+                    <option value="credit_card">💳 Credit Card (Instant Tokenized Auth)</option>
+                    <option value="apple_pay">🍎 Apple Pay / Google Pay</option>
+                    <option value="paypal">🅿️ PayPal Escrow Payout</option>
+                    <option value="cod">📦 Cash on Delivery (Post-auth)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top: 20px;">
+                <button 
+                  class="btn-primary" 
+                  @click="submitEcommerceCheckout" 
+                  :disabled="isCheckingOut || cart.length === 0">
+                  <span v-if="isCheckingOut">Processing via PaaS Engine...</span>
+                  <span v-else>🔒 Complete Checkout (${{ cartTotal.toFixed(2) }})</span>
+                </button>
+              </div>
+              <p style="font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-top: 8px;">
+                Calls <code>POST /api/ecommerce/checkout</code> &rarr; Reusable Payment Core
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 2: BANKING CLIENT (Apex Bank Portal) -->
+      <!-- ================================================================= -->
+      <div v-if="activeTab === 'banking'" class="banking-view">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">🏦 Apex Online Banking Portal</h2>
+            <p class="panel-subtitle">Institutional accounts & wire clearing with automated 2FA challenge powered by the reusable PaaS core</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <span class="badge-tag cyan">Adapter: BankingPaymentAdapter</span>
+            <span class="badge-tag amber">Security Policy: 2FA OTP on &ge; $500</span>
+          </div>
+        </div>
+
+        <div class="banking-layout">
+          <!-- Accounts & Beneficiaries -->
+          <div>
+            <!-- Visual Bank Cards -->
+            <div class="account-cards-row">
+              <div v-for="acc in bankingAccounts" :key="acc.id" :class="['bank-card', { savings: acc.account_type.includes('Savings') }]">
+                <div class="card-top">
+                  <div class="chip-icon"></div>
+                  <div class="card-bank-logo">APEX CORP</div>
+                </div>
+                <div class="card-balance-lbl">{{ acc.account_type }}</div>
+                <div class="card-balance-val">${{ acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</div>
+                <div class="card-footer">
+                  <span>{{ acc.account_number }}</span>
+                  <span>DAILY: ${{ (acc.daily_limit - acc.spent_today).toFixed(0) }} left</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interbank Transfer Form -->
+            <div class="glass-panel">
+              <h3 class="panel-title" style="font-size: 1.1rem; margin-bottom: 16px;">
+                💸 Initiate Interbank Wire Transfer
+              </h3>
+
+              <div class="transfer-box">
+                <!-- Source Account -->
+                <div class="form-group">
+                  <label class="form-label">Debit From Account</label>
+                  <select v-model="selectedSourceAccount" class="form-select">
+                    <option v-for="acc in bankingAccounts" :key="acc.account_number" :value="acc.account_number">
+                      {{ acc.account_type }} - {{ acc.account_number }} (${{ acc.balance.toFixed(2) }})
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Beneficiary Quick Picker -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <span>Select Saved Beneficiary</span>
+                    <span style="font-size: 0.72rem; color: var(--accent-cyan);">Quick Select</span>
+                  </label>
+                  <div class="beneficiary-pill-list">
+                    <div 
+                      v-for="b in beneficiaries" 
+                      :key="b.id" 
+                      :class="['beneficiary-pill', { selected: transferForm.beneficiaryAccount === b.beneficiary_account }]"
+                      @click="selectBeneficiary(b)">
+                      {{ b.beneficiary_name }} ({{ b.bank_name }})
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recipient Account & Name -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label class="form-label">Recipient Account #</label>
+                    <input type="text" v-model="transferForm.beneficiaryAccount" class="form-input" placeholder="ACC-XXXXXXXX">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Recipient Name</label>
+                    <input type="text" v-model="transferForm.beneficiaryName" class="form-input">
+                  </div>
+                </div>
+
+                <!-- Transfer Speed -->
+                <div class="form-group">
+                  <label class="form-label">Settlement Speed & Clearing Protocol</label>
+                  <div class="speed-options">
+                    <div :class="['speed-card', { active: transferSpeed === 'IMPS' }]" @click="transferSpeed = 'IMPS'">
+                      <h5>⚡ Instant IMPS / ACH</h5>
+                      <p>Fee: $0.50 (Real-time)</p>
+                    </div>
+                    <div :class="['speed-card', { active: transferSpeed === 'EXPRESS' }]" @click="transferSpeed = 'EXPRESS'">
+                      <h5>🚀 FedNow Express</h5>
+                      <p>Fee: $3.50 (Priority)</p>
+                    </div>
+                    <div :class="['speed-card', { active: transferSpeed === 'WIRE' }]" @click="transferSpeed = 'WIRE'">
+                      <h5>🌐 Swift Wire</h5>
+                      <p>Fee: $15.00 (Global)</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Transfer Amount & Memo -->
+                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 12px;">
+                  <div class="form-group">
+                    <label class="form-label">
+                      <span>Amount ($ USD)</span>
+                      <span v-if="transferForm.amount >= 500" style="color: var(--accent-amber); font-size: 0.72rem;">
+                        Requires 2FA OTP
+                      </span>
+                    </label>
+                    <input type="number" step="10" v-model="transferForm.amount" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Reference Memo / Narrative</label>
+                    <input type="text" v-model="transferForm.memo" class="form-input">
+                  </div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                  <button 
+                    class="btn-primary" 
+                    @click="submitBankingTransfer" 
+                    :disabled="isTransferring">
+                    <span v-if="isTransferring">Authorizing with Payment Core...</span>
+                    <span v-else>
+                      Confirm Transfer (${{ (parseFloat(transferForm.amount || 0) + calculatedWireFee).toFixed(2) }} total)
+                    </span>
+                  </button>
+                  <p style="font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-top: 8px;">
+                    Transfers &ge; $500 trigger two-factor authentication challenge via reusable security engine
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Banking Statement Ledger -->
+          <div class="glass-panel">
+            <h3 class="panel-title" style="font-size: 1.1rem; margin-bottom: 16px;">
+              📋 Real-time Banking Statement Ledger
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+              All transactions recorded directly in the shared enterprise double-entry ledger.
+            </p>
+
+            <div v-if="bankingStatement.length === 0" style="color: var(--text-muted); font-size: 0.88rem;">
+              No wire transfers recorded yet.
+            </div>
+
+            <div v-else style="display: flex; flex-direction: column; gap: 10px; max-height: 540px; overflow-y: auto;">
+              <div v-for="tx in bankingStatement" :key="tx.id" class="trace-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 700; color: #ffffff;">{{ tx.id }}</span>
+                  <span :class="['badge-tag', tx.status === 'SETTLED' ? 'emerald' : 'amber']">{{ tx.status }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                  <span>To: {{ tx.metadata.beneficiary_name || tx.target_account }}</span>
+                  <span style="color: var(--accent-rose); font-weight: 700;">-${{ (tx.amount + tx.fee).toFixed(2) }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+                  <span>Speed: {{ tx.metadata.transfer_speed || 'STANDARD' }} (Fee: ${{ tx.fee.toFixed(2) }})</span>
+                  <span>{{ tx.created_at }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 3: PAAS ARCHITECTURE & SERVICE REGISTRY -->
+      <!-- ================================================================= -->
+      <div v-if="activeTab === 'soa'" class="soa-view">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">🌐 PaaS Architecture & Enterprise Service Registry</h2>
+            <p class="panel-subtitle">Architectural Blueprint, Pluggable Adapters & Real-Time Enterprise Observability</p>
+          </div>
+          <div>
+            <span class="badge-tag emerald">Service Status: Healthy & Autonomous</span>
+          </div>
+        </div>
+
+        <!-- Telemetry Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="lbl">Total Enterprise Volume</div>
+            <div class="val" style="color: var(--accent-emerald);">${{ telemetry.total_volume.toLocaleString() }}</div>
+            <span style="font-size: 0.72rem; color: var(--text-dim);">Across All Tenants</span>
+          </div>
+          <div class="stat-card">
+            <div class="lbl">Processed Transactions</div>
+            <div class="val">{{ telemetry.total_transactions }}</div>
+            <span style="font-size: 0.72rem; color: var(--text-dim);">E-Comm: {{ telemetry.app_distribution.ecommerce.count }} | Banking: {{ telemetry.app_distribution.banking.count }}</span>
+          </div>
+          <div class="stat-card">
+            <div class="lbl">Average Service Latency</div>
+            <div class="val" style="color: var(--accent-cyan);">{{ telemetry.avg_latency_ms }} ms</div>
+            <span style="font-size: 0.72rem; color: var(--accent-emerald);">Well within 50ms SLA</span>
+          </div>
+          <div class="stat-card">
+            <div class="lbl">Risk Screening Score</div>
+            <div class="val" style="color: var(--accent-amber);">{{ telemetry.avg_risk_score }} / 100</div>
+            <span style="font-size: 0.72rem; color: var(--text-dim);">Real-time Heuristic Engine</span>
+          </div>
+        </div>
+
+        <!-- Interactive PaaS Architecture Diagram Card -->
+        <div class="glass-panel soa-diagram-card">
+          <h3 class="panel-title" style="font-size: 1.15rem;">
+            🗺️ Payment as a Service (PaaS) Architectural Flow
+          </h3>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">
+            How two heterogeneous client applications reuse the single payment utility service via specialized context adapters:
+          </p>
+
+          <div class="soa-architecture-flow">
+            <!-- Col 1: Consumer Applications -->
+            <div class="soa-node-col">
+              <div class="soa-node client-app">
+                <h4>🛍️ NovaShop Store</h4>
+                <p>Retail / B2C Commerce</p>
+                <span class="badge-tag indigo" style="margin-top: 6px;">Client Node A</span>
+              </div>
+              <div class="soa-node client-app">
+                <h4>🏦 Apex Banking Portal</h4>
+                <p>FinTech Interbank Wire</p>
+                <span class="badge-tag cyan" style="margin-top: 6px;">Client Node B</span>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="arrow-connector">
+              <span>REST / JSON</span>
+              &rarr;
+            </div>
+
+            <!-- Col 2: Context Adapters -->
+            <div class="soa-node-col">
+              <div class="soa-node adapter">
+                <h4>EcommercePaymentAdapter</h4>
+                <p>• Validates Cart & Stock<br>• Computes Promo Coupons<br>• Generates Shipping Invoices</p>
+              </div>
+              <div class="soa-node adapter">
+                <h4>BankingPaymentAdapter</h4>
+                <p>• Verifies Account Balances<br>• Enforces Daily Limits<br>• Issues 2FA OTP Challenge</p>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="arrow-connector">
+              <span>Unified Contract</span>
+              &rarr;
+            </div>
+
+            <!-- Col 3: Core Reusable Service -->
+            <div class="soa-node core-service">
+              <div style="font-size: 2rem; margin-bottom: 6px;">⚡</div>
+              <h4>Payment as a Service (PaaS) Core</h4>
+              <p style="color: #c7d2fe; font-size: 0.8rem; margin: 6px 0;">(SVC-PAY-001)</p>
+              <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; text-align: left; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px;">
+                <span>✓ Idempotency Key Manager</span>
+                <span>✓ Risk & Fraud Scoring Engine</span>
+                <span>✓ Double-Entry Ledger Orchestrator</span>
+                <span>✓ Audit & SLA Telemetry Logger</span>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="arrow-connector">
+              <span>ACID Commit</span>
+              &rarr;
+            </div>
+
+            <!-- Col 4: Data Layer -->
+            <div class="soa-node-col">
+              <div class="soa-node data-store">
+                <h4>transactions Table</h4>
+                <p>Unified Ledger Records</p>
+              </div>
+              <div class="soa-node data-store">
+                <h4>audit_traces Table</h4>
+                <p>Observability & Audit Logs</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparative Policy Matrix (Why and How they differ) -->
+        <div class="glass-panel" style="margin-bottom: 28px;">
+          <h3 class="panel-title" style="font-size: 1.15rem; margin-bottom: 8px;">
+            ⚖️ Comparative Service Specialization Matrix
+          </h3>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px;">
+            Clear proof of how the single service is adjusted separately to cater to each client domain:
+          </p>
+
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Architectural Dimension</th>
+                <th>NovaShop (E-Commerce Store)</th>
+                <th>Apex Banking (FinTech Portal)</th>
+                <th>Enterprise Shared Core</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 700; color: #ffffff;">Transaction Type</td>
+                <td><code>ORDER_PURCHASE</code></td>
+                <td><code>FUNDS_TRANSFER</code></td>
+                <td>Standard State Machine</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #ffffff;">Validation Criteria</td>
+                <td>Cart inventory, minimum order, shipping address</td>
+                <td>Account balance, KYC routing code, daily limit</td>
+                <td>Idempotency & schema conformity</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #ffffff;">Special Fee & Adjustments</td>
+                <td>Promo coupons (e.g. 20% off), free shipping rules</td>
+                <td>Wire clearing levy ($0.50 IMPS to $15 Wire)</td>
+                <td>Absorbed merchant ledger fees</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #ffffff;">Security Challenge</td>
+                <td>Frictionless 1-Click checkout</td>
+                <td>Mandatory 2FA OTP for transfers &ge; $500</td>
+                <td>Risk Scoring & Challenge token state</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 700; color: #ffffff;">Post-Settlement Action</td>
+                <td>Deducts physical warehouse stock, issues order #</td>
+                <td>Debits sender balance, credits beneficiary balance</td>
+                <td>Immutable Double-Entry Ledger Entry</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Live Service Tracing and Request Inspection -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title" style="font-size: 1.15rem;">
+                🔍 Live Service Execution Traces
+              </h3>
+              <p class="panel-subtitle">Audited inter-service calls with millisecond execution times and status codes</p>
+            </div>
+            <button class="btn-secondary" @click="loadTelemetry">Refresh Traces</button>
+          </div>
+
+          <div v-if="telemetry.recent_traces.length === 0" style="color: var(--text-muted); font-size: 0.88rem;">
+            No service traces recorded yet. Make a checkout or bank transfer to generate live traces!
+          </div>
+
+          <div v-else class="traces-list">
+            <div 
+              v-for="tr in telemetry.recent_traces" 
+              :key="tr.id" 
+              class="trace-row"
+              @click="inspectTrace(tr)"
+              style="cursor: pointer;"
+              title="Click to view full payload contract">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span :class="['badge-tag', tr.client_app === 'ecommerce' ? 'indigo' : 'cyan']">
+                  {{ tr.client_app.toUpperCase() }}
+                </span>
+                <span style="color: #ffffff; font-weight: 600;">{{ tr.service_name }}</span>
+                <span style="color: var(--text-dim);">{{ tr.endpoint }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="color: var(--accent-cyan);">{{ tr.execution_time_ms }} ms</span>
+                <span class="badge-tag emerald">HTTP {{ tr.status_code }}</span>
+                <span style="color: var(--text-dim); font-size: 0.72rem;">{{ tr.created_at }}</span>
+                <span style="color: var(--accent-cyan);">&rsaquo; Inspect</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 1: ORDER CONFIRMATION RECEIPT (E-Commerce) -->
+    <!-- ================================================================= -->
+    <div v-if="confirmedOrderModal" class="modal-overlay" @click.self="confirmedOrderModal = null">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 style="display: flex; align-items: center; gap: 8px;">
+            <span>🎉 Order Confirmed!</span>
+          </h3>
+          <button class="modal-close-btn" @click="confirmedOrderModal = null">&times;</button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          Your order was authorized and settled through the central <strong>Enterprise Payment Service</strong>.
+        </p>
+
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+          <div class="summary-line">
+            <span>Order Number:</span>
+            <span style="font-weight: 700; color: #ffffff;">{{ confirmedOrderModal.orderNumber }}</span>
+          </div>
+          <div class="summary-line">
+            <span>Payment Tx ID:</span>
+            <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 0.78rem;">{{ confirmedOrderModal.transactionId }}</span>
+          </div>
+          <div class="summary-line">
+            <span>Customer:</span>
+            <span>{{ confirmedOrderModal.customerName }}</span>
+          </div>
+          <div class="summary-line">
+            <span>Delivery Estimate:</span>
+            <span style="color: var(--accent-emerald);">{{ confirmedOrderModal.deliveryEstimate }}</span>
+          </div>
+          <div class="summary-line total">
+            <span>Amount Charged:</span>
+            <span style="color: var(--accent-emerald);">${{ confirmedOrderModal.amount.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" @click="confirmedOrderModal = null">
+          Back to Store
+        </button>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 2: 2-FACTOR OTP CHALLENGE (Banking) -->
+    <!-- ================================================================= -->
+    <div v-if="otpModal.show" class="modal-overlay">
+      <div class="modal-card" style="border-color: var(--accent-amber);">
+        <div class="modal-header">
+          <h3 style="color: var(--accent-amber); display: flex; align-items: center; gap: 8px;">
+            <span>🛡️ High-Value 2FA Security Challenge</span>
+          </h3>
+          <button class="modal-close-btn" @click="otpModal.show = false">&times;</button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          The enterprise payment policy flagged this transfer for mandatory two-factor authorization because the amount is <strong>&ge; $500.00</strong>.
+        </p>
+
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+          <span style="font-size: 0.82rem; color: #fde68a;">{{ otpModal.otpCodeHint }}</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label class="form-label">Enter 6-Digit Verification Code</label>
+          <input 
+            type="text" 
+            v-model="otpModal.enteredOtp" 
+            class="form-input" 
+            placeholder="123456" 
+            maxlength="6"
+            style="font-size: 1.2rem; letter-spacing: 0.25em; text-align: center;">
+        </div>
+
+        <button class="btn-primary" @click="verifyOtpPasscode" :disabled="otpModal.isVerifying">
+          <span v-if="otpModal.isVerifying">Verifying Token...</span>
+          <span v-else>Verify & Authorize Funds Transfer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 3: CONTRACT & TRACE INSPECTOR -->
+    <!-- ================================================================= -->
+    <div v-if="selectedContractModal" class="modal-overlay" @click.self="selectedContractModal = null">
+      <div class="modal-card" style="max-width: 680px;">
+        <div class="modal-header">
+          <h3>🔍 Service Contract Trace</h3>
+          <button class="modal-close-btn" @click="selectedContractModal = null">&times;</button>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+          Trace ID: <code>#{{ selectedContractModal.id }}</code> | Client: <code>{{ selectedContractModal.client_app }}</code> | Latency: <code>{{ selectedContractModal.execution_time_ms }} ms</code>
+        </p>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label">Normalized Client Request Payload</label>
+          <pre style="background: #000; padding: 12px; border-radius: 8px; font-size: 0.76rem; color: #a5b4fc; max-height: 180px; overflow-y: auto;">{{ JSON.stringify(JSON.parse(selectedContractModal.request_payload || '{}'), null, 2) }}</pre>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label class="form-label">Enterprise Service Response Contract</label>
+          <pre style="background: #000; padding: 12px; border-radius: 8px; font-size: 0.76rem; color: #6ee7b7; max-height: 180px; overflow-y: auto;">{{ JSON.stringify(JSON.parse(selectedContractModal.response_payload || '{}'), null, 2) }}</pre>
+        </div>
+
+        <button class="btn-secondary" style="width: 100%; justify-content: center;" @click="selectedContractModal = null">
+          Close Inspector
+        </button>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div class="toast-container">
+      <div v-for="t in toasts" :key="t.id" :class="['toast', t.type]">
+        <span v-if="t.type === 'success'">✅</span>
+        <span v-else-if="t.type === 'error'">❌</span>
+        <span v-else>ℹ️</span>
+        <span style="font-size: 0.86rem; color: #ffffff;">{{ t.message }}</span>
+      </div>
+    </div>
+  </div>
+  {% endraw %}
+
+  <!-- Main Vue Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
